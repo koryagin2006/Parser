@@ -47,7 +47,7 @@ def parse_root_sitemap():
 def main():
     BASE = 'raw';
 
-    #parse_root_sitemap()
+    parse_root_sitemap()
 
     files = [BASE + '/' + f for f in listdir(BASE) if isfile(join(BASE, f))]
     pool = Pool(processes=40)

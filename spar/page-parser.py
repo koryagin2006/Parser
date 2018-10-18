@@ -68,6 +68,13 @@ def parse_product(filename):
             td = row.find_all(True)
             label = td[0].get_text().strip().lower()
             value = td[1].get_text().strip()
+            description.append(label + ' ' + value)
+            if label == u'артикул:':
+                uid = value
+            if label.find(u'бренд:') > -1:
+                brand = value
+            if label.find(u'производитель:') > -1:
+                manufacturer = value
                 
 
     img = get_meta(soup, 'og:image')
