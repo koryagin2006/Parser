@@ -30,7 +30,7 @@ def main():
             file.close()
 
     for link in product_links:
-        url = BASE_HREF + link;
+        url = BASE_HREF + link
         html = get_html(url, {'User-Agent': choice(useragents)})
         filename = link.replace('/', '_')
         with open('raw/products/' + filename + '.html', 'w', encoding='utf-8') as file:

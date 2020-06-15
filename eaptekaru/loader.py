@@ -15,13 +15,13 @@ import re
 import json
 
 
-reload(sys)
-sys.setdefaultencoding('utf8')
+# reload(sys)
+# sys.setdefaultencoding('utf8')
 
 
 def get_html(url):
     print('Parse: ' + url)
-    options = webdriver.ChromeOptions();
+    options = webdriver.ChromeOptions()
     #options.add_argument('--headless');
     #options.add_argument('--disable-gpu')
     
@@ -90,7 +90,7 @@ def main():
     for cat in cats:
         for page in range(1, cat['size'] + 1):
             spage = str(page)
-            url = BASE_HREF + cat['path'] + '/?PAGEN_1=' + spage;
+            url = BASE_HREF + cat['path'] + '/?PAGEN_1=' + spage
             process_page({
               'cat': cat,
               'page': spage,
