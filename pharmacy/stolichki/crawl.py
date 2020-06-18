@@ -5,11 +5,12 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import json
 import time
+from datetime import datetime
 
 host = 'https://stolichki.ru'
+result_path = 'result/%s' % datetime.today().date()
 
-Path('raw').mkdir(parents=True, exist_ok=True)
-Path('result').mkdir(parents=True, exist_ok=True)
+Path(result_path).mkdir(parents=True, exist_ok=True)
 
 def parse_product(id, city_id, city_title):
     html = requests.get('%s/drugs/%d' % (host, id), cookies={'cityId': city_id})
@@ -23,23 +24,27 @@ def parse_product(id, city_id, city_title):
     if title == None:
         return
 
-    price = product.find('div', {'class': 'part-price'})
+    price_block = product.find('div', {'class': 'part-price'})
 
-    if price == None:
+    if price_block == None:
         return
 
-    price = price.text.strip()
+    price = price_block.find('p', attrs={'itemprop' : 'lowPrice'})
+    price_old = price_block.find('b', attrs={'itemprop' : 'lowPrice'})
+
+    price = price.text.strip() if price != None else 0
+    price_old = price_old.text.strip() if price_old != None else 0
 
     res = pd.DataFrame()
-    return res.append(pd.DataFrame([[city_title, title.text, price, price]], columns = ['city', 'title', 'price_min', 'price_max']), ignore_index=True)
+    return res.append(pd.DataFrame([[city_title, title.text, price_old != 0, price, price_old]], columns = ['city', 'title', 'sale', 'price', 'price_old']), ignore_index=True)
 
 cities = {
-   #"1": "Москва",
+   "1": "Москва",
    #"6": "Дмитров",
    #"19": "Щелково",
    #"25": "Луховицы",
    #"26": "Ногинск",
-   #"27": "Люберцы",
+   "27": "Люберцы",
    #"28": "Подольск",
    #"29": "Дзержинский",
    #"30": "Егорьевск",
@@ -50,15 +55,15 @@ cities = {
    #"36": "Долгопрудный",
    #"38": "Одинцово",
    #"39": "Железнодорожный",
-   #"40": "Тула",
+   "40": "Тула",
    #"43": "Муром",
-   #"44": "Балашиха",
+   "44": "Балашиха",
    #"45": "Серебряные пруды",
    #"46": "Сергиев Посад",
    #"48": "Ликино-Дулево",
    #"50": "Серпухов",
    #"51": "Щёкино",
-   #"52": "Владимир",
+   "52": "Владимир",
    #"53": "Александров",
    #"54": "Черноголовка",
    #"55": "пос. Большевик",
@@ -67,7 +72,7 @@ cities = {
    #"60": "Королёв",
    #"61": "Лобня",
    #"62": "Химки",
-   #"63": "Рязань",
+   "63": "Рязань",
    #"64": "Клин",
    #"65": "Кашира",
    #"66": "Ступино",
@@ -134,46 +139,14 @@ cities = {
 for city_id in cities:
     result = pd.DataFrame()
     city = cities[city_id]
+    start = time.time()
     for id in range(0, 38000):
         print(city, id)
         result = result.append(parse_product(id, city_id, city), ignore_index=True)
-        result.to_csv('result/%s.csv' % city)
+        result.to_csv('%s/%s.csv' % (result_path, city))
 
         time.sleep(.3)
 
-
-"""
-r = requests.get(url + '/catalog')
-with codecs.open('raw/catalog.html', 'w', 'utf-8') as output_file:
-    output_file.write(r.text)
-
-catalog = BeautifulSoup(r.text, features='html.parser')
-category_links = catalog.find('div', {'class': 'catalog-categories'}).find_all('a')
-
-for link in category_links:
-    print(link.get('href'))
-    print(link.text)
-
-
-def parse_category(category_link):
-    res = pd.DataFrame()
-"""
-
-"""
-prices_url = '%s/ajax/product-map?id=%d' % (host, id)
-
-    session = requests.Session()
-    session.head(prices_url)
-
-    prices = session.get(
-        url=prices_url,
-        data={},
-        headers={
-            'Referer': url,
-            'x-requested-with': 'XMLHttpRequest'
-        }
-    )
-
-    json_string = json.dumps(prices.text)
-    print(json_string)
-"""
+    with open('result/time.txt', 'a') as file:
+        file.write('%s crawl time %f\n' % (city, time.time() - start))
+        file.close()

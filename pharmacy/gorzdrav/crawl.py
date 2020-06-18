@@ -5,11 +5,12 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import json
 import time
+from datetime import datetime
 
 host = 'https://gorzdrav.org/'
+result_path = 'result/%s' % datetime.today().date()
 
-Path('raw').mkdir(parents=True, exist_ok=True)
-Path('result').mkdir(parents=True, exist_ok=True)
+Path(result_path).mkdir(parents=True, exist_ok=True)
 
 
 cities = {
@@ -154,8 +155,8 @@ def parse_category(df, city_id, city, category_href):
 
         for product in data['products']:
             df = df.append(parse_product(product, city), ignore_index=True)
-            df.to_csv('result/%s.csv' % city)
-            time.sleep(.5)
+            df.to_csv('%s/%s.csv' % (result_path, city))
+            time.sleep(.3)
 
         if data['last']:
             return df
@@ -164,5 +165,10 @@ def parse_category(df, city_id, city, category_href):
 
 for city_id in cities:
     result = pd.DataFrame()
+    start = time.time()
     for category in categories:
         result = parse_category(result, city_id, cities[city_id], category % city_id)
+
+    with open('result/time.txt', 'a') as file:
+        file.write('%s crawl time %f\n' % (cities[city_id], time.time() - start))
+        file.close()
