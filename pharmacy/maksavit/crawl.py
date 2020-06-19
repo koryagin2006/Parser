@@ -14,7 +14,7 @@ Path('result').mkdir(parents=True, exist_ok=True)
 def parse_product(city_id, id):
     session = requests.Session()
     session.head(data_url)
-    print(data_url)
+
     prices = session.post(
         url=data_url,
         data={
@@ -24,8 +24,10 @@ def parse_product(city_id, id):
         },
         headers={
             'Referer': 'https://maksavit.ru/catalog/94342/',
-            'x-requested-with': 'XMLHttpRequest',
-            'Origin': 'https://maksavit.ru'
+            'X-Requested-With': 'XMLHttpRequest',
+            'Origin': 'https://maksavit.ru',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
         },
         cookies={
             'current_region': city_id,
@@ -34,8 +36,7 @@ def parse_product(city_id, id):
         }
     )
 
-    json_string = json.dumps(prices.text)
-    print(json_string)
+    print(prices.text)
 
     #return pd.DataFrame([[city, title.text, min_price, max_price]], columns = ['city', 'title', 'price_min', 'price_max'])
 
@@ -44,7 +45,7 @@ cities = {136356: 'Архангельск'}
 
 parse_product('136356', '94342')
 
-"""for city_id in cities:
+'''for city_id in cities:
     result = pd.DataFrame()
     for id in range(0, 35000):
         print(city, id)
@@ -52,9 +53,9 @@ parse_product('136356', '94342')
         result.to_csv('result/%s.csv' % city)
 
         time.sleep(3)
-"""
+'''
 
-"""
+'''
 r = requests.get(url + '/catalog')
 with codecs.open('raw/catalog.html', 'w', 'utf-8') as output_file:
     output_file.write(r.text)
@@ -69,9 +70,9 @@ for link in category_links:
 
 def parse_category(category_link):
     res = pd.DataFrame()
-"""
+'''
 
-"""
+'''
 prices_url = '%s/ajax/product-map?id=%d' % (host, id)
 
     session = requests.Session()
@@ -88,9 +89,9 @@ prices_url = '%s/ajax/product-map?id=%d' % (host, id)
 
     json_string = json.dumps(prices.text)
     print(json_string)
-"""
+'''
 
-"""
+'''
 html = requests.get('%s/%s/product/%d' % (host, city, id))
     product = BeautifulSoup(html.text, features='html.parser')
 
@@ -111,4 +112,4 @@ html = requests.get('%s/%s/product/%d' % (host, city, id))
     prices = [item['data-price'] for item in price_block.find_all('div', attrs={'data-price' : True})]
     min_price = min(prices)
     max_price = max(prices)
-"""
+'''
