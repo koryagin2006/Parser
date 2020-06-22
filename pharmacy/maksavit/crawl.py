@@ -5,111 +5,64 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import json
 import time
+from datetime import datetime
 
 host = 'https://maksavit.ru'
-data_url = host + '/ajax/goals.php'
+data_url = host + '/catalog/%s/'
+result_path = 'result/%s' % datetime.today().date()
 
-Path('result').mkdir(parents=True, exist_ok=True)
+Path(result_path).mkdir(parents=True, exist_ok=True)
 
-def parse_product(city_id, id):
+def get_html(url, city_id):
     session = requests.Session()
-    session.head(data_url)
+    session.head(url)
 
-    prices = session.post(
-        url=data_url,
-        data={
-            'PRODUCT_ID': id,
-            'PRICE_ID': '58bf45a5-9daa-11e5-a855-00155d000316_P',
-            'session_id': '4a18da164309f2f44f934220c01484f3'
-        },
-        headers={
-            'Referer': 'https://maksavit.ru/catalog/94342/',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Origin': 'https://maksavit.ru',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-        },
-        cookies={
-            'current_region': city_id,
-            'BITRIX_SM_SALE_UID': '9bde4625bc25fdcc51185147f77e7e29',
-            'datePopup': '10.06.2020'
-        }
-    )
-
-    print(prices.text)
-
-    #return pd.DataFrame([[city, title.text, min_price, max_price]], columns = ['city', 'title', 'price_min', 'price_max'])
-
-# 'orenburg',
-cities = {136356: 'Архангельск'}
-
-parse_product('136356', '94342')
-
-'''for city_id in cities:
-    result = pd.DataFrame()
-    for id in range(0, 35000):
-        print(city, id)
-        result = result.append(parse_product(city, id), ignore_index=True)
-        result.to_csv('result/%s.csv' % city)
-
-        time.sleep(3)
-'''
-
-'''
-r = requests.get(url + '/catalog')
-with codecs.open('raw/catalog.html', 'w', 'utf-8') as output_file:
-    output_file.write(r.text)
-
-catalog = BeautifulSoup(r.text, features='html.parser')
-category_links = catalog.find('div', {'class': 'catalog-categories'}).find_all('a')
-
-for link in category_links:
-    print(link.get('href'))
-    print(link.text)
-
-
-def parse_category(category_link):
-    res = pd.DataFrame()
-'''
-
-'''
-prices_url = '%s/ajax/product-map?id=%d' % (host, id)
-
-    session = requests.Session()
-    session.head(prices_url)
-
-    prices = session.get(
-        url=prices_url,
+    r = session.get(
+        url=url,
         data={},
         headers={
             'Referer': url,
-            'x-requested-with': 'XMLHttpRequest'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36'
+        },
+        cookies={
+            'current_region': city_id
         }
     )
 
-    json_string = json.dumps(prices.text)
-    print(json_string)
-'''
+    return r.text
 
-'''
-html = requests.get('%s/%s/product/%d' % (host, city, id))
-    product = BeautifulSoup(html.text, features='html.parser')
-
-    title = product.find('h1', {'class': 'title'})
-    if title == None:
+def parse_product(city_id, city, id):
+    html = get_html(data_url % id, city_id)
+    if html == None:
         return
 
-    price_block = product.find('div', {'id': 'variants'})
-    if price_block == None:
+    print(data_url % id)
+
+    dom = BeautifulSoup(html, features='html.parser')
+
+    title = dom.find('h1')
+    price_block = dom.find('div', {'class': 'pharmacies_block'})
+    if title == None or price_block == None:
         return
 
-    items = price_block.find_all('div', {'class': 'pv-item'})
-    value = price_block.find('meta', {'itemprop': 'price'})
+    price_items = price_block.find_all('div', {'class': 'item__position-wrap'})
+    prices = []
+    for item in price_items:
+        prices.append(item.find('div', {'class': 'price'}).text.replace(' ', '').replace('р.', '').strip())
 
-    if value == None:
-        return
+    return pd.DataFrame([[city, title.text, min(prices), max(prices)]], columns = ['city', 'title', 'price_min', 'price_max'])
 
-    prices = [item['data-price'] for item in price_block.find_all('div', attrs={'data-price' : True})]
-    min_price = min(prices)
-    max_price = max(prices)
-'''
+with open('cities.json', encoding='utf-8') as cities_file:
+    cities = json.load(cities_file)
+
+for city in cities:
+    result = pd.DataFrame()
+    start = time.time()
+    for id in range(700, 100000):
+        result = result.append(parse_product(city['id'], city['name'], id), ignore_index=True)
+        result.to_csv('%s/%s.csv' % (result_path, city['name']))
+        time.sleep(2)
+
+    with open('result/time.txt', 'a') as file:
+        file.write('%s crawl time %f\n' % (city['name'], time.time() - start))
+        file.close()

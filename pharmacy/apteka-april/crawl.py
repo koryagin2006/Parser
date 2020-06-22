@@ -49,7 +49,7 @@ def parse_category(df, city_id, city_title, typeID, subtypeID):
                 df = df.append(parse_product(product, city_title), ignore_index=True)
 
             df.to_csv('%s/%s.csv' % (result_path, city_title))
-            time.sleep(1)
+            time.sleep(2)
 
         if len(products) < 23:
             break
