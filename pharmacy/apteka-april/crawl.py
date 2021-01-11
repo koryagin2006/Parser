@@ -61,7 +61,7 @@ def parse_category(df, city_id, city_title, typeID, subtypeID):
 with open('categories.json', encoding='utf-8') as categories_file:
     categories = json.load(categories_file)
 
-with open('cities.json', encoding='utf-8') as cities_file:
+with open('cities_my.json', encoding='utf-8') as cities_file:
     cities = json.load(cities_file)
 
 for city in cities:
