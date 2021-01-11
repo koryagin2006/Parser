@@ -54,15 +54,15 @@ def tree(main_link):
 towns = {
     # '/orenburg': 'Оренбург',
     # '/buguruslan': 'Бугуруслан',
-    # '/buzuluk': 'Бузулук',
-    # '/kuvandyk': 'Кувандык',
-    # '/kumertau': 'Кумертау',
+    '/buzuluk': 'Бузулук',
+    '/kuvandyk': 'Кувандык',
+    '/kumertau': 'Кумертау',
     # '/gai': 'Гай',
     # '/mednogorsk': 'Медногорск',
-    # '/orsk': 'Орск',
+    '/orsk': 'Орск',
     # '/birsk': 'Бирск',
     # '/ufa': 'Уфа',
-    '/yanaul': 'Янаул',
+    # '/yanaul': 'Янаул',
 }
 
 product_list = position_list(path=path)
@@ -70,7 +70,7 @@ length_towns = len(towns)
 length = len(towns) * len(product_list)
 
 for town in towns:
-    for product in product_list:
+    for product in range(1, 1e5):
         length -= 1
         print(f'Осталось всего {length} позиций, сейчас в работе город {towns[town]}')
         product_link = f'https://farmlend.ru{town}/product/' + str(product)
